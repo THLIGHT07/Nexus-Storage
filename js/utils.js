@@ -55,7 +55,7 @@ const WEATHER_ICONS={"Clear":"☀️","Clouds":"☁️","Rain":"🌧️","Drizzl
    login/register calls that use these.
 ═══════════════════════════════════════════════════ */
 // Deploy: change API_BASE to your live backend URL (e.g. https://your-api.railway.app)
-const API_BASE="http://localhost:5000";  // <- the ONE line to change for production (no trailing slash)
+const API_BASE="nexus-backend-production-44ae.up.railway.app";  // <- the ONE line to change for production (no trailing slash)
 const API_AUTH=(b=>{const a=`${b}/api/auth`;return{LOGIN:`${a}/login`,REGISTER:`${a}/register`,ME:`${a}/me`,USERNAME:`${a}/me/username`,
   FORGOT:`${a}/forgot-password`,VERIFY_OTP:`${a}/verify-otp`,RESET:`${a}/reset-password`,
   CHANGE_SEND:`${a}/change-password/send-otp`,CHANGE:`${a}/change-password`,LINK_EMAIL:`${a}/link-email`,VERIFY_EMAIL:`${a}/verify-email`};})(API_BASE.replace(/\/+$/,""));

@@ -132,22 +132,27 @@ function showLoginScreen(){
 function showLoginPanel(){
   const login=document.getElementById("loginPanel"),reg=document.getElementById("registerPanel");
   reg.hidden=true;login.hidden=false;
+  document.getElementById("forgotPanel").hidden=true;resetForgotFlow();
   login.classList.remove("login-panel-enter");void login.offsetWidth;login.classList.add("login-panel-enter");
   document.getElementById("showRegisterBtn").hidden=false;
+  document.getElementById("showForgotBtn").hidden=false;
   document.getElementById("showLoginBtn").hidden=true;
   setLoginError("");
 }
 function showRegisterPanel(){
   const login=document.getElementById("loginPanel"),reg=document.getElementById("registerPanel");
   login.hidden=true;reg.hidden=false;
+  document.getElementById("forgotPanel").hidden=true;resetForgotFlow();
   reg.classList.remove("login-panel-enter");void reg.offsetWidth;reg.classList.add("login-panel-enter");
   document.getElementById("showRegisterBtn").hidden=true;
+  document.getElementById("showForgotBtn").hidden=true;
   document.getElementById("showLoginBtn").hidden=false;
   setRegisterError("");setRegisterOk("");
   setTimeout(()=>document.getElementById("regUser").focus(),200);
 }
 document.getElementById("showRegisterBtn").addEventListener("click",showRegisterPanel);
 document.getElementById("showLoginBtn").addEventListener("click",showLoginPanel);
+document.getElementById("showForgotBtn").addEventListener("click",showForgotPanel);
 
 /* ── Password visibility toggles ── */
 function wireEyeToggle(inputId,btnId,iconId){
@@ -160,6 +165,7 @@ function wireEyeToggle(inputId,btnId,iconId){
 }
 wireEyeToggle("loginPass","loginEyeBtn","loginEyeIcon");
 wireEyeToggle("regPass","regEyeBtn","regEyeIcon");
+wireEyeToggle("fpNew","fpEyeBtn","fpEyeIcon");
 
 /* ── Small UI helpers ── */
 /* ── Login rate-limit UX — same behaviour as the admin panel (backend/admin.html) ──
@@ -269,6 +275,139 @@ async function apiRegister(username,password){
   }
   return res.json(); // { message, user }
 }
+
+
+/* ═══════════════════════════════════════════════════
+   FORGOT PASSWORD — email one-time code (backend: routes/authOtp.js)
+   Step 1  username or email  → POST /forgot-password   (server answers the same for every account)
+   Step 2  6-digit code       → POST /verify-otp        (checks the code, does not use it up)
+   Step 3  new password ×2    → POST /reset-password    (sets the password, code is used up)
+   "Back to login" is the corner link (showLoginBtn), shown whenever this panel is open.
+═══════════════════════════════════════════════════ */
+const FP_SUBS={1:"Enter your username or email",2:"Enter the 6-digit code we emailed you",3:"Choose a new password"};
+const fp={ident:"",otp:"",step:1,resendTimer:null,resendLeft:0};
+const fpEl=id=>document.getElementById(id);
+function fpMsg(id,msg){const el=fpEl(id);el.textContent=msg||"";el.classList.toggle("show",!!msg);}
+function fpClearMsgs(){["fpErr1","fpErr2","fpErr3","fpOk2"].forEach(id=>fpMsg(id,""));}
+
+function fpSetStep(n,focus=true){
+  fp.step=n;fpClearMsgs();
+  [1,2,3].forEach(i=>{fpEl("forgotForm"+i).hidden=i!==n;});
+  fpEl("fpSub").textContent=FP_SUBS[n];
+  const p=fpEl("forgotPanel");p.classList.remove("login-panel-enter");void p.offsetWidth;p.classList.add("login-panel-enter");
+  if(focus)setTimeout(()=>fpEl(["","fpUser","fpOtp","fpNew"][n]).focus(),180);
+}
+/* Resend button: disabled with a countdown (the server enforces the same gap). */
+function fpStartCooldown(seconds){
+  clearInterval(fp.resendTimer);
+  fp.resendLeft=Math.max(1,Math.ceil(Number(seconds)||60));
+  const btn=fpEl("fpResend");
+  const tick=()=>{
+    if(fp.resendLeft<=0){clearInterval(fp.resendTimer);fp.resendTimer=null;btn.disabled=false;btn.textContent="Resend code";return;}
+    btn.disabled=true;btn.textContent=`Resend code in ${fp.resendLeft}s`;fp.resendLeft--;
+  };
+  fp.resendTimer=setInterval(tick,1000);tick();
+}
+function resetForgotFlow(){
+  clearInterval(fp.resendTimer);fp.resendTimer=null;fp.ident="";fp.otp="";fp.step=1;
+  ["forgotForm1","forgotForm2","forgotForm3"].forEach(id=>fpEl(id).reset());
+  [1,2,3].forEach(i=>{fpEl("forgotForm"+i).hidden=i!==1;});
+  fpEl("fpSub").textContent=FP_SUBS[1];fpClearMsgs();
+  ["fpBtn1","fpBtn2","fpBtn3"].forEach(id=>setBtnLoading(id,false));
+  const r=fpEl("fpResend");r.disabled=true;r.textContent="Resend code";
+  const pw=fpEl("fpNew");if(pw.type!=="password"){pw.type="password";fpEl("fpEyeIcon").className="ti ti-eye";}
+}
+function showForgotPanel(){
+  const typed=document.getElementById("loginUser").value.trim();
+  document.getElementById("loginPanel").hidden=true;document.getElementById("registerPanel").hidden=true;
+  resetForgotFlow();
+  fpEl("forgotPanel").hidden=false;
+  document.getElementById("showRegisterBtn").hidden=true;
+  document.getElementById("showForgotBtn").hidden=true;
+  document.getElementById("showLoginBtn").hidden=false;
+  if(typed)fpEl("fpUser").value=typed; // carry over what they already typed on the login form
+  fpSetStep(1);
+}
+
+/* step 1 — ask for a code */
+fpEl("forgotForm1").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  if(fpEl("fpBtn1").disabled)return;
+  const ident=fpEl("fpUser").value.trim().toLowerCase();
+  fpMsg("fpErr1","");
+  if(!ident){fpMsg("fpErr1","Enter your username or email.");shakeInput("fpUser");return;}
+  setBtnLoading("fpBtn1",true);
+  try{
+    const data=await apiJson(API_AUTH.FORGOT,{body:{username:ident}});
+    fp.ident=ident;
+    fpSetStep(2);
+    fpMsg("fpOk2",data.message||"If that account has a verified email, a code is on its way.");
+    fpStartCooldown(data.cooldownSeconds);
+  }catch(err){
+    fpMsg("fpErr1",err.message||"Could not send the code.");
+    shakeInput("fpUser");
+  }finally{setBtnLoading("fpBtn1",false);}
+});
+
+/* step 2 — enter the code (digits only; paste-friendly) */
+fpEl("fpOtp").addEventListener("input",(e)=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,6);});
+fpEl("forgotForm2").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  if(fpEl("fpBtn2").disabled)return;
+  const otp=fpEl("fpOtp").value.replace(/\D/g,"");
+  fpMsg("fpErr2","");
+  if(otp.length!==6){fpMsg("fpErr2","Enter the 6-digit code from your email.");shakeInput("fpOtp");return;}
+  setBtnLoading("fpBtn2",true);
+  try{
+    await apiJson(API_AUTH.VERIFY_OTP,{body:{username:fp.ident,otp,purpose:"reset"}});
+    fp.otp=otp;
+    fpSetStep(3);
+  }catch(err){
+    fpMsg("fpErr2",err.message||"That code didn't work.");
+    fpEl("fpOtp").value="";shakeInput("fpOtp");fpEl("fpOtp").focus();
+  }finally{setBtnLoading("fpBtn2",false);}
+});
+fpEl("fpResend").addEventListener("click",async()=>{
+  const btn=fpEl("fpResend");
+  if(btn.disabled||!fp.ident)return;
+  btn.disabled=true;btn.textContent="Sending…";fpMsg("fpErr2","");
+  try{
+    const data=await apiJson(API_AUTH.FORGOT,{body:{username:fp.ident}});
+    fpMsg("fpOk2",data.message||"A new code is on its way.");
+    fpEl("fpOtp").value="";
+    fpStartCooldown(data.cooldownSeconds);
+  }catch(err){
+    fpMsg("fpOk2","");fpMsg("fpErr2",err.message||"Could not resend the code.");
+    fpStartCooldown(err.data&&err.data.retryAfterSeconds||10);
+  }
+});
+
+/* step 3 — new password + confirmation */
+fpEl("forgotForm3").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  if(fpEl("fpBtn3").disabled)return;
+  const pw=fpEl("fpNew").value,pw2=fpEl("fpConfirm").value;
+  fpMsg("fpErr3","");
+  if(pw.length<8||pw.length>72){fpMsg("fpErr3","Password must be between 8 and 72 characters.");shakeInput("fpNew");return;}
+  if(pw!==pw2){fpMsg("fpErr3","The two passwords don't match.");shakeInput("fpConfirm");return;}
+  setBtnLoading("fpBtn3",true);
+  try{
+    await apiJson(API_AUTH.RESET,{body:{username:fp.ident,otp:fp.otp,newPassword:pw}});
+    const name=fp.ident.includes("@")?"":fp.ident; // an email isn't a login name — leave the username box as it was
+    showLoginPanel();
+    if(name)document.getElementById("loginUser").value=name;
+    document.getElementById("loginPass").value="";
+    document.getElementById("loginPass").focus();
+    toast("Password updated — sign in with your new password","ti-check");
+  }catch(err){
+    if(err.status===400&&/code/i.test(err.message)){ // code expired / used up while typing the password
+      fpSetStep(2);fpEl("fpOtp").value="";fpMsg("fpErr2",err.message+" Request a new one below.");
+      if(fp.resendLeft<=0)fpStartCooldown(1);
+    }else{
+      fpMsg("fpErr3",err.message||"Could not reset the password.");
+    }
+  }finally{setBtnLoading("fpBtn3",false);}
+});
 
 /* ── Login form submit ── */
 document.getElementById("loginForm").addEventListener("submit",async(e)=>{

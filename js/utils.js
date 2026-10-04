@@ -55,8 +55,10 @@ const WEATHER_ICONS={"Clear":"☀️","Clouds":"☁️","Rain":"🌧️","Drizzl
    login/register calls that use these.
 ═══════════════════════════════════════════════════ */
 // Deploy: change API_BASE to your live backend URL (e.g. https://your-api.railway.app)
-const API_BASE="https://nexus-backend-production-44ae.up.railway.app/";  // <- the ONE line to change for production (no trailing slash)
-const API_AUTH=(b=>({LOGIN:`${b}/api/auth/login`,REGISTER:`${b}/api/auth/register`,ME:`${b}/api/auth/me`,USERNAME:`${b}/api/auth/me/username`}))(API_BASE.replace(/\/+$/,""));
+const API_BASE="http://localhost:5000";  // <- the ONE line to change for production (no trailing slash)
+const API_AUTH=(b=>{const a=`${b}/api/auth`;return{LOGIN:`${a}/login`,REGISTER:`${a}/register`,ME:`${a}/me`,USERNAME:`${a}/me/username`,
+  FORGOT:`${a}/forgot-password`,VERIFY_OTP:`${a}/verify-otp`,RESET:`${a}/reset-password`,
+  CHANGE_SEND:`${a}/change-password/send-otp`,CHANGE:`${a}/change-password`,LINK_EMAIL:`${a}/link-email`,VERIFY_EMAIL:`${a}/verify-email`};})(API_BASE.replace(/\/+$/,""));
 /* How often (ms) we poll GET /api/auth/me while logged in to catch an
    admin block in near-real-time. A random 5–8s cadence, re-picked each
    cycle in main.js, avoids every open tab hitting the server in lockstep. */
@@ -454,6 +456,17 @@ function colorForCat(cat){const h=Math.abs(String(cat==null?"":cat).split("").re
 function getAuthToken(){return localStorage.getItem(LS.TOKEN);}
 function setAuthToken(token){if(token)localStorage.setItem(LS.TOKEN,token);else localStorage.removeItem(LS.TOKEN);}
 function authHeaders(){const t=getAuthToken();return t?{"Authorization":`Bearer ${t}`}:{};}
+/* JSON request helper for the email-code flows (forgot / change password, link email).
+   Resolves with the parsed body; rejects with Error(message) carrying .status and .data
+   (e.g. data.retryAfterSeconds on a 429). Network failures get a friendly message. */
+async function apiJson(url,{method="POST",body,auth=false}={}){
+  let res;
+  try{res=await fetch(url,{method,headers:{"Content-Type":"application/json",...(auth?authHeaders():{})},body:body===undefined?undefined:JSON.stringify(body)});}
+  catch(e){throw new Error(`Can't reach the Nexus server at ${API_BASE}. Is the backend running?`);}
+  let data=null;try{data=await res.json();}catch(e){/* non-JSON body */}
+  if(!res.ok){const err=new Error((data&&data.error)||`Request failed (HTTP ${res.status}).`);err.status=res.status;err.data=data||{};throw err;}
+  return data||{};
+}
 
 /* ── Profile text rules (shared by the register form, the Edit Profile dialog and the popup) ──
    Username = the LOGIN name: only a-z and 0-9, always lowercase, 8–30 characters. The server enforces the

@@ -6,9 +6,9 @@
 <title>NEXUS STORAGE</title>
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'"/>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
-<link rel="stylesheet" href="css/main.css?v=2026-10-02-xss1"/>
+<link rel="stylesheet" href="css/main.css?v=2026-10-04-otp1"/>
 <link rel="stylesheet" href="css/dashboard.css?v=2026-10-02-xss1"/>
-<link rel="stylesheet" href="css/panels.css?v=2026-10-02-xss1"/>
+<link rel="stylesheet" href="css/panels.css?v=2026-10-04-otp1"/>
 <link rel="stylesheet" href="css/ai.css?v=2026-10-02-xss1"/>
 <link rel="stylesheet" href="css/themes.css?v=2026-10-02-xss1"/>
 </head>
@@ -98,8 +98,62 @@
       </form>
     </div>
 
+    <!-- ── FORGOT PASSWORD PANEL (3 steps: who → code → new password) ── -->
+    <div class="login-panel login-panel--forgot" id="forgotPanel" hidden>
+      <div class="login-icon-ring login-icon-ring--warn"><i class="ti ti-key"></i></div>
+      <div class="login-title">RESET PASSWORD</div>
+      <div class="login-sub" id="fpSub">Enter your username or email</div>
+
+      <!-- step 1 -->
+      <form id="forgotForm1" autocomplete="off" novalidate>
+        <div class="login-field">
+          <i class="ti ti-user login-field-icon"></i>
+          <input class="login-input" id="fpUser" type="text" placeholder="Username or email" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="254" required/>
+        </div>
+        <div class="login-err" id="fpErr1"></div>
+        <button type="submit" class="login-btn" id="fpBtn1">
+          <span class="login-btn-label">SEND CODE</span>
+          <span class="login-btn-spinner"></span>
+        </button>
+      </form>
+
+      <!-- step 2 -->
+      <form id="forgotForm2" autocomplete="off" novalidate hidden>
+        <div class="login-field">
+          <i class="ti ti-mail-opened login-field-icon"></i>
+          <input class="login-input login-input--otp" id="fpOtp" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="6-digit code" autocomplete="one-time-code" maxlength="6" required/>
+        </div>
+        <div class="login-err" id="fpErr2"></div>
+        <div class="login-ok" id="fpOk2"></div>
+        <button type="submit" class="login-btn" id="fpBtn2">
+          <span class="login-btn-label">VERIFY CODE</span>
+          <span class="login-btn-spinner"></span>
+        </button>
+        <button type="button" class="login-text-btn" id="fpResend" disabled>Resend code</button>
+      </form>
+
+      <!-- step 3 -->
+      <form id="forgotForm3" autocomplete="off" novalidate hidden>
+        <div class="login-field">
+          <i class="ti ti-lock login-field-icon"></i>
+          <input class="login-input" id="fpNew" type="password" placeholder="New password (min 8 characters)" autocomplete="new-password" maxlength="72" required/>
+          <button type="button" class="login-eye-btn" id="fpEyeBtn" tabindex="-1" aria-label="Show password"><i class="ti ti-eye" id="fpEyeIcon"></i></button>
+        </div>
+        <div class="login-field">
+          <i class="ti ti-lock-check login-field-icon"></i>
+          <input class="login-input" id="fpConfirm" type="password" placeholder="Confirm new password" autocomplete="new-password" maxlength="72" required/>
+        </div>
+        <div class="login-err" id="fpErr3"></div>
+        <button type="submit" class="login-btn" id="fpBtn3">
+          <span class="login-btn-label">RESET PASSWORD</span>
+          <span class="login-btn-spinner"></span>
+        </button>
+      </form>
+    </div>
+
     <!-- corner links live at card level so they stay put in the same spot
          regardless of which panel (login/register) is currently showing -->
+    <button type="button" class="login-register-link login-forgot-link" id="showForgotBtn">Forgot password</button>
     <button type="button" class="login-register-link" id="showRegisterBtn">Register</button>
     <button type="button" class="login-register-link" id="showLoginBtn" hidden>Back to login</button>
   </div>
@@ -609,11 +663,11 @@
 <div class="toast" id="toast" role="status"><i class="ti ti-check" id="toastIcon"></i><span id="toastMsg">Done</span></div>
 
 <script>(window.__nexusParts=window.__nexusParts||{})["index.html"]="2026-10-02-xss1";</script>
-<script src="js/utils.js?v=2026-10-02-xss1"></script>
-<script src="js/boot.js?v=2026-10-02-xss1"></script>
+<script src="js/utils.js?v=2026-10-04-otp1"></script>
+<script src="js/boot.js?v=2026-10-04-otp1"></script>
 <script src="js/apps.js?v=2026-10-02-xss1"></script>
 <script src="js/notes.js?v=2026-10-02-xss1"></script>
-<script src="js/settings.js?v=2026-10-02-xss1"></script>
+<script src="js/settings.js?v=2026-10-04-otp1"></script>
 <script src="js/wallpapers.js?v=2026-10-02-xss1"></script>
 <script src="js/ai/ai-intent.js?v=2026-10-02-xss1"></script>
 <script src="js/ai/ai-search.js?v=2026-10-02-xss1"></script>

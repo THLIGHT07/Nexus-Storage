@@ -350,6 +350,211 @@ function setAvatar(value){
   applyAvatar();
 }
 
+/* ═══════════════════════════════════════════════════
+   SECURITY — verified email + change password (email one-time codes)
+   Backend: routes/authOtp.js
+     link-email → verify-email                      (adds / changes the verified email; needs your password)
+     change-password/send-otp → verify-otp → change-password   (needs the verified email)
+   The card re-renders only when the STEP changes, so typed text is never lost; errors and
+   loading states update the existing elements in place.
+═══════════════════════════════════════════════════ */
+const _sec={email:"",verified:false,loaded:false,loadErr:"",flow:null,busy:false,timer:null,left:0,resendBtn:null};
+function secMask(e){const [l,d]=String(e).split("@");return `${(l||"").slice(0,1)}${"*".repeat(Math.max(2,Math.min(6,(l||"").length-1)))}@${d||""}`;}
+
+async function refreshSecurity(){
+  if(!getAuthToken()||CURRENT_UID==null)return;
+  const uid=CURRENT_UID;
+  try{
+    const data=await apiJson(API_AUTH.ME,{method:"GET",auth:true});
+    if(CURRENT_UID!==uid)return; // signed out / switched account while waiting
+    const u=data.user||{};
+    _sec.email=u.email||"";_sec.verified=!!(u.email&&u.email_verified);_sec.loaded=true;_sec.loadErr="";
+  }catch(e){_sec.loaded=false;_sec.loadErr=e.message||"Could not load your account.";}
+  if(!_sec.flow)renderSecurity();
+}
+function closeSecurityFlow(silent){
+  clearInterval(_sec.timer);_sec.timer=null;_sec.left=0;_sec.resendBtn=null;
+  _sec.flow=null;_sec.busy=false;
+  if(silent){_sec.email="";_sec.verified=false;_sec.loaded=false;_sec.loadErr="";} // signing out: forget this account's email
+  renderSecurity();
+}
+function secStartFlow(kind,step,extra){
+  clearInterval(_sec.timer);_sec.timer=null;_sec.left=0;
+  _sec.flow={kind,step,err:"",info:"",otp:"",masked:"",email:"",...extra};
+  renderSecurity();
+}
+function secCooldown(seconds){
+  clearInterval(_sec.timer);
+  _sec.left=Math.max(1,Math.ceil(Number(seconds)||60));
+  const tick=()=>{
+    const b=_sec.resendBtn,alive=b&&b.isConnected;
+    if(_sec.left<=0){clearInterval(_sec.timer);_sec.timer=null;if(alive){b.disabled=false;b.lastChild.textContent="Resend code";}return;}
+    if(alive){b.disabled=true;b.lastChild.textContent=`Resend in ${_sec.left}s`;}
+    _sec.left--;
+  };
+  _sec.timer=setInterval(tick,1000);tick();
+}
+/** Runs one request with a loading label on `btn`; errors land in `errEl`; never double-fires. */
+async function secRun(btn,busyLabel,errEl,fn){
+  if(_sec.busy)return;
+  _sec.busy=true;errEl.hidden=true;
+  const label=btn.lastChild,orig=label.textContent,flow=_sec.flow,uid=CURRENT_UID;
+  label.textContent=busyLabel;btn.disabled=true;
+  try{await fn();}
+  catch(err){
+    if(_sec.flow!==flow||CURRENT_UID!==uid)return; // flow was closed meanwhile
+    errEl.textContent=err.message||"Something went wrong. Please try again.";errEl.hidden=false;
+  }finally{
+    _sec.busy=false;
+    if(btn.isConnected){label.textContent=orig;btn.disabled=false;}
+  }
+}
+const secInput=(attrs)=>sxEl("input",{autocomplete:"off",autocapitalize:"off",spellcheck:"false",...attrs});
+
+function secFlowView(){
+  const f=_sec.flow;if(!f)return null;
+  const errEl=sxEl("div",{class:"sx-error",role:"alert",hidden:!f.err,text:f.err||""});
+  const cancel=sxButton("Cancel","sx-btn sx-btn-ghost");
+  cancel.addEventListener("click",()=>{if(!_sec.busy)closeSecurityFlow();});
+  const stepTag=(n,t,name)=>sxEl("div",{class:"sx-flow-steps",text:`Step ${n} of ${t} · ${name}`});
+  const box=(...kids)=>sxEl("div",{class:"sx-flow",role:"group","aria-label":f.kind==="email"?"Email":"Change password"},...kids);
+  _sec.resendBtn=null;
+
+  if(f.kind==="email"&&f.step==="form"){
+    const email=secInput({id:"sxSecEmail",type:"email",placeholder:"you@example.com",maxlength:"254",autocomplete:"email",inputmode:"email"});email.value=f.email||"";
+    const pass=secInput({id:"sxSecPass",type:"password",placeholder:"Your current password",maxlength:"72",autocomplete:"current-password"});
+    const go=sxButton("Send code","sx-btn sx-btn-primary","ti-send");
+    const submit=()=>{
+      const addr=email.value.trim().toLowerCase();
+      if(!addr||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(addr)){errEl.textContent="Enter a valid email address.";errEl.hidden=false;email.focus();return;}
+      if(!pass.value){errEl.textContent="Enter your current password to continue.";errEl.hidden=false;pass.focus();return;}
+      secRun(go,"Sending…",errEl,async()=>{
+        const data=await apiJson(API_AUTH.LINK_EMAIL,{auth:true,body:{email:addr,password:pass.value}});
+        pass.value="";
+        secStartFlow("email","code",{email:addr,masked:data.maskedEmail||secMask(addr),info:data.message||"A code is on its way."});
+        toast("Check your inbox for the code","ti-mail");
+      });
+    };
+    go.addEventListener("click",submit);
+    [email,pass].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submit();}}));
+    setTimeout(()=>email.focus(),0);
+    return box(stepTag(1,2,"Email"),
+      sxField("Email address","We'll send a 6-digit code to confirm it's yours.",email),
+      sxField("Current password","Needed to attach an email to your account.",pass),
+      errEl,sxEl("div",{class:"sx-actions"},cancel,go));
+  }
+
+  if(f.step==="code"){ // shared by the email and password flows
+    const isEmail=f.kind==="email";
+    const otp=secInput({id:"sxSecOtp",type:"text",class:"sx-otp",inputmode:"numeric",pattern:"[0-9]*",maxlength:"6",placeholder:"••••••",autocomplete:"one-time-code","aria-label":"6-digit code"});
+    otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"").slice(0,6);});
+    const go=sxButton(isEmail?"Verify email":"Continue","sx-btn sx-btn-primary",isEmail?"ti-mail-check":"ti-arrow-right");
+    const submit=()=>{
+      const code=otp.value.replace(/\D/g,"");
+      if(code.length!==6){errEl.textContent="Enter the 6-digit code from your email.";errEl.hidden=false;otp.focus();return;}
+      secRun(go,"Checking…",errEl,async()=>{
+        if(isEmail){
+          const data=await apiJson(API_AUTH.VERIFY_EMAIL,{auth:true,body:{otp:code}});
+          _sec.email=data.email||f.email;_sec.verified=true;_sec.loaded=true;
+          closeSecurityFlow();toast("Email verified","ti-check");
+        }else{
+          await apiJson(API_AUTH.VERIFY_OTP,{auth:true,body:{otp:code,purpose:"change"}});
+          secStartFlow("password","newpw",{otp:code,masked:f.masked});
+        }
+      }).then(()=>{if(_sec.flow===f&&otp.isConnected){otp.value="";otp.focus();}});
+    };
+    go.addEventListener("click",submit);
+    otp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submit();}});
+    setTimeout(()=>otp.focus(),0);
+    let second;
+    if(isEmail){
+      second=sxButton("Use another email","sx-btn sx-btn-ghost","ti-arrow-back-up");
+      second.addEventListener("click",()=>{if(!_sec.busy)secStartFlow("email","form",{email:f.email});});
+    }else{
+      second=sxButton("Resend code","sx-btn sx-btn-ghost","ti-refresh");
+      _sec.resendBtn=second;
+      second.addEventListener("click",()=>{
+        secRun(second,"Sending…",errEl,async()=>{
+          const data=await apiJson(API_AUTH.CHANGE_SEND,{auth:true,body:{}});
+          f.masked=data.maskedEmail||f.masked;otp.value="";
+          secCooldown(data.cooldownSeconds);toast("New code sent","ti-mail");
+        }).then(()=>{if(_sec.flow===f&&second.isConnected&&_sec.left>0){second.disabled=true;second.lastChild.textContent=`Resend in ${_sec.left}s`;}});
+      });
+    }
+    return box(stepTag(isEmail?2:1,isEmail?2:2,isEmail?"Verify":"Code"),
+      sxEl("p",{class:"sx-flow-info",text:f.info||`We sent a 6-digit code to ${f.masked}. It expires in 10 minutes.`}),
+      sxField("Verification code","",otp),
+      errEl,sxEl("div",{class:"sx-actions"},cancel,second,go));
+  }
+
+  if(f.kind==="password"&&f.step==="newpw"){
+    const pw=secInput({id:"sxSecNew",type:"password",placeholder:"New password (min 8 characters)",maxlength:"72",autocomplete:"new-password"});
+    const pw2=secInput({id:"sxSecNew2",type:"password",placeholder:"Confirm new password",maxlength:"72",autocomplete:"new-password"});
+    const go=sxButton("Change password","sx-btn sx-btn-primary","ti-key");
+    const submit=()=>{
+      if(pw.value.length<8||pw.value.length>72){errEl.textContent="Password must be between 8 and 72 characters.";errEl.hidden=false;pw.focus();return;}
+      if(pw.value!==pw2.value){errEl.textContent="The two passwords don't match.";errEl.hidden=false;pw2.focus();return;}
+      secRun(go,"Saving…",errEl,async()=>{
+        let data;
+        try{data=await apiJson(API_AUTH.CHANGE,{auth:true,body:{otp:f.otp,newPassword:pw.value}});}
+        catch(err){
+          if(err.status===400&&/code/i.test(err.message)){ // code used up / expired while typing
+            secStartFlow("password","code",{masked:f.masked,err:err.message+" Request a new one with Resend."});secCooldown(1);return;
+          }
+          throw err;
+        }
+        if(data.token)setAuthToken(data.token); // this device keeps working; every other session was signed out
+        closeSecurityFlow();
+        toast("Password changed — other devices were signed out","ti-check");
+      });
+    };
+    go.addEventListener("click",submit);
+    [pw,pw2].forEach(i=>i.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submit();}}));
+    setTimeout(()=>pw.focus(),0);
+    return box(stepTag(2,2,"New password"),
+      sxField("New password","",pw),sxField("Confirm new password","",pw2),
+      errEl,sxEl("div",{class:"sx-actions"},cancel,go));
+  }
+  return null;
+}
+
+function renderSecurity(){
+  const host=$id("sxSecHost");if(!host)return;
+  const flow=_sec.flow;
+  const emailSub=!_sec.loaded
+    ?(_sec.loadErr||"Checking your account…")
+    :_sec.verified?"":"No email linked. Add one to enable password reset and password changes.";
+  const emailText=sxEl("div",{class:"sx-row-text"},
+    sxEl("div",{class:"setting-label",text:"Email"}),
+    _sec.loaded&&_sec.verified
+      ?sxEl("div",{class:"setting-sub"},sxEl("span",{text:secMask(_sec.email)+" "}),sxEl("span",{class:"sx-badge-ok",text:"Verified"}))
+      :sxEl("div",{class:"setting-sub",text:emailSub}));
+  const emailBtn=sxButton(_sec.verified?"Change email":"Add email","sx-btn","ti-mail");
+  emailBtn.disabled=!_sec.loaded||!!flow;
+  emailBtn.addEventListener("click",()=>secStartFlow("email","form"));
+  const pwBtn=sxButton("Change password","sx-btn","ti-key");
+  pwBtn.disabled=!_sec.loaded||!_sec.verified||!!flow;
+  pwBtn.addEventListener("click",()=>{
+    if(_sec.busy)return;
+    if(!_sec.verified){toast("Add and verify an email first","ti-alert-circle");return;}
+    _sec.busy=true;pwBtn.disabled=true;pwBtn.lastChild.textContent="Sending code…";
+    apiJson(API_AUTH.CHANGE_SEND,{auth:true,body:{}}).then(data=>{
+      _sec.busy=false;
+      secStartFlow("password","code",{masked:data.maskedEmail||secMask(_sec.email),info:data.message});
+      secCooldown(data.cooldownSeconds);toast("Check your inbox for the code","ti-mail");
+    }).catch(err=>{
+      _sec.busy=false;renderSecurity();
+      toast(err.message||"Could not send the code","ti-alert-circle");
+    });
+  });
+  const retry=!_sec.loaded&&_sec.loadErr?sxButton("Retry","sx-btn sx-btn-ghost","ti-refresh"):null;
+  if(retry)retry.addEventListener("click",()=>{_sec.loadErr="";renderSecurity();refreshSecurity();});
+  host.replaceChildren(
+    sxEl("div",{class:"setting-row sx-row"},emailText,retry||emailBtn),
+    sxRow("Password",_sec.verified?"Confirm with a code sent to your email.":"Needs a verified email first.",pwBtn),
+    flow?secFlowView():null);
+}
+
 /* ── Account deletion (server first, then this device) ── */
 async function deleteMyAccount(password){
   let res;
@@ -464,9 +669,8 @@ function buildSettingsLayout(){
       sxEl("div",{class:"sx-acc-row"},avatarPreview,
         sxEl("div",{class:"sx-acc-text"},sxEl("div",{class:"sx-acc-name",id:"sxAccName"}),sxEl("div",{class:"sx-acc-user",id:"sxAccUser"}),sxEl("div",{class:"sx-acc-bio",id:"sxAccBio"}))),
       sxEl("div",{class:"sx-actions"},editBtn,userBtn2)),
-    sxCard("Security","ti-shield-lock","Keep your account safe.",
-      sxRow("Change password","Needs a server endpoint that isn't available yet.",sxEl("span",{class:"sx-soon",text:"Coming soon"})),
-      sxEl("div",{class:"sx-actions"},(()=>{const b=sxButton("Change password","sx-btn","ti-key");b.disabled=true;b.title="Coming soon";return b;})())),
+    sxCard("Security","ti-shield-lock","Link a verified email, then change your password with a code we send to it.",
+      sxEl("div",{id:"sxSecHost"})),
     sxCard("Account actions","ti-logout","Signing out clears your login token and returns to the login screen. Your saved apps and settings stay on this device.",
       sxEl("div",{class:"sx-actions"},signOutBtn)));
 
@@ -589,11 +793,13 @@ function buildSettingsLayout(){
      so delete what is left of the old config UI there (header rows, Behavior Settings block, "⚙️ Settings" button). */
   if(typeof removeLegacyAiConfigUi==="function")removeLegacyAiConfigUi();
   openSettingsTab(_sxTab);
+  renderSecurity();
 }
 function syncSettingsExtras(){
   if(!_sxBuilt)return;
   refreshProfileUi(); // avatar, display name, @username, bio — all from THIS account
   renderSxData();syncSxAi();
+  refreshSecurity();  // does this account have a verified email? (GET /api/auth/me)
   ["sxDelPass","sxResetConfirm"].forEach(id=>{const el=$id(id);if(el)el.value="";});
 }
 
@@ -902,6 +1108,7 @@ function closeProfileUi(){
   try{closeProfilePopup(false);}catch(e){console.warn("[profile] popup close failed",e);}
   try{closeEditProfile(true,true);}catch(e){console.warn("[profile] editor close failed",e);}
   _epBusy=false;_epBase=null;_epDraft=null;
+  try{closeSecurityFlow(true);}catch(e){console.warn("[security] flow close failed",e);}
 }
 
 try{

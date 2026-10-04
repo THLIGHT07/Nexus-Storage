@@ -117,6 +117,15 @@ body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-he
 .login-hint-row i{font-size:11px;color:var(--green);}
 .login-register-link{position:absolute;bottom:16px;right:18px;z-index:2;background:none;border:none;cursor:pointer;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:.03em;color:var(--text3);padding:4px 6px;border-radius:6px;transition:color .2s,background .2s;}
 .login-register-link:hover{color:var(--accent2);background:rgba(124,111,255,.1);}
+.login-register-link[hidden]{display:none;}
+.login-forgot-link{right:auto;left:18px;} /* same look as Register, opposite corner */
+.login-icon-ring--warn{color:#ffc857;border-color:rgba(255,200,87,.4);box-shadow:0 0 0 6px rgba(255,200,87,.06),0 0 24px -4px rgba(255,200,87,.45);}
+.login-input--otp{text-align:center;letter-spacing:.5em;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;padding-left:40px;padding-right:12px;}
+.login-input--otp::placeholder{letter-spacing:.04em;font-size:12.5px;font-weight:400;font-family:'Syne',sans-serif;}
+.login-text-btn{display:block;margin:12px auto 0;background:none;border:none;cursor:pointer;font-size:10.5px;font-family:'JetBrains Mono',monospace;letter-spacing:.03em;color:var(--accent2);padding:4px 8px;border-radius:6px;transition:color .2s,background .2s;}
+.login-text-btn:hover:not(:disabled){background:rgba(124,111,255,.1);}
+.login-text-btn:disabled{color:var(--text3);cursor:default;}
+#forgotForm1[hidden],#forgotForm2[hidden],#forgotForm3[hidden]{display:none;}
 
 /* ══════════════════════════════════════
    BLOCKED ACCOUNT OVERLAY — serious, red-accented, covers everything

@@ -1,0 +1,44 @@
+/* ============================================================
+   THEMES.CSS — Wallpaper layers (live + static), wallpaper
+   picker UI, theme swatches, theme colour variants
+   ============================================================ */
+
+.cursor-glow{z-index:2 !important;}
+.hero-content{z-index:3 !important;}
+/* wall tabs */
+.wall-tabs{display:flex;margin-bottom:12px;border:1px solid var(--border2);border-radius:var(--r2);overflow:hidden;}
+.wall-tab{flex:1;padding:7px 8px;font-size:11px;font-family:'Syne',sans-serif;background:transparent;border:none;color:var(--text3);cursor:pointer;transition:all .15s;letter-spacing:.03em;text-align:center;}
+.wall-tab.active{background:var(--accent);color:#fff;}
+.wall-tab-content{display:none;}.wall-tab-content.active{display:block;}
+/* scope */
+.wall-scope-row{display:flex;gap:6px;margin-bottom:10px;}
+.wall-scope-btn{flex:1;padding:6px;border-radius:var(--r2);font-size:11px;font-family:'Syne',sans-serif;border:1px solid var(--border2);background:transparent;color:var(--text3);cursor:pointer;transition:all .15s;text-align:center;}
+.wall-scope-btn.active{background:var(--accent-glow);color:var(--accent2);border-color:var(--accent);}
+/* live wall */
+.live-wall-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;}
+.live-wall-thumb{height:62px;border-radius:var(--r2);cursor:pointer;border:2px solid transparent;transition:border-color .15s,transform .15s;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text2);position:relative;overflow:hidden;background:var(--bg2);}
+.live-wall-thumb:hover{transform:scale(1.04);}
+.live-wall-thumb.active{border-color:var(--accent);}
+.live-wall-thumb canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+
+.theme-swatches{display:flex;gap:8px;flex-wrap:wrap;}
+.theme-swatch{width:32px;height:32px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:border-color .15s,transform .15s;}
+.theme-swatch:hover{transform:scale(1.12);}
+.theme-swatch.active{border-color:#fff;}
+.wall-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.wall-thumb{height:56px;border-radius:var(--r2);cursor:pointer;border:2px solid transparent;transition:border-color .15s,transform .15s;background-size:cover;background-position:center;}
+.wall-thumb:hover{transform:scale(1.04);}
+.wall-thumb.active{border-color:var(--accent);}
+.wall-upload-btn{width:100%;padding:9px;border:1px dashed var(--border2);border-radius:var(--r2);background:transparent;color:var(--text3);cursor:pointer;font-size:12px;font-family:'Syne',sans-serif;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.wall-upload-btn:hover{border-color:var(--accent);color:var(--accent2);}
+
+/* ══════════════════════════════════════
+   THEME VARIANTS
+══════════════════════════════════════ */
+body.theme-blue{--accent:#3b82f6;--accent2:#93c5fd;--accent-glow:rgba(59,130,246,.18);}
+body.theme-green{--accent:#10b981;--accent2:#6ee7b7;--accent-glow:rgba(16,185,129,.18);}
+body.theme-red{--accent:#ef4444;--accent2:#fca5a5;--accent-glow:rgba(239,68,68,.18);}
+body.theme-pink{--accent:#ec4899;--accent2:#f9a8d4;--accent-glow:rgba(236,72,153,.18);}
+body.theme-orange{--accent:#f97316;--accent2:#fdba74;--accent-glow:rgba(249,115,22,.18);}
+

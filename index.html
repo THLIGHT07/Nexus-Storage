@@ -659,15 +659,32 @@
   </div>
 </div>
 
+<!-- CLOUD IMPORT (one-time offer: this browser already holds data the cloud has never seen) -->
+<div class="modal-backdrop" id="cloudImportModal" role="dialog" aria-modal="true" aria-labelledby="cloudImportTitle">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div><div class="modal-eyebrow">CLOUD STORAGE</div><div class="modal-title" id="cloudImportTitle">Import your data to the cloud?</div></div>
+    </div>
+    <div class="confirm-strip"><i class="ti ti-cloud-upload"></i><p>We found data saved in this browser for your account. Import it to save it in your cloud storage, so it follows you to any device.</p></div>
+    <ul id="cloudImportList" style="margin:14px 0 0;padding-left:20px;font-size:13px;line-height:1.7;color:var(--text2);"></ul>
+    <p id="cloudImportErr" role="alert" style="display:none;margin:12px 0 0;font-size:12px;color:var(--red);"></p>
+    <div class="form-actions" style="margin-top:18px;">
+      <button class="btn btn-primary" id="cloudImportNow"><i class="ti ti-cloud-upload" style="margin-right:5px;"></i><span>Import to cloud</span></button>
+      <button class="btn btn-ghost" id="cloudImportLater">Not now</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast" role="status"><i class="ti ti-check" id="toastIcon"></i><span id="toastMsg">Done</span></div>
 
 <script>(window.__nexusParts=window.__nexusParts||{})["index.html"]="2026-10-02-xss1";</script>
-<script src="js/utils.js?v=2026-10-04-otp1"></script>
-<script src="js/boot.js?v=2026-10-04-otp1"></script>
+<script src="js/utils.js?v=2026-10-07-cloud1"></script>
+<script src="js/cloud.js?v=2026-10-07-cloud1"></script>
+<script src="js/boot.js?v=2026-10-07-cloud1"></script>
 <script src="js/apps.js?v=2026-10-02-xss1"></script>
 <script src="js/notes.js?v=2026-10-02-xss1"></script>
-<script src="js/settings.js?v=2026-10-04-otp1"></script>
+<script src="js/settings.js?v=2026-10-07-cloud1"></script>
 <script src="js/wallpapers.js?v=2026-10-02-xss1"></script>
 <script src="js/ai/ai-intent.js?v=2026-10-02-xss1"></script>
 <script src="js/ai/ai-search.js?v=2026-10-02-xss1"></script>

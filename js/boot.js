@@ -430,11 +430,27 @@ document.getElementById("loginForm").addEventListener("submit",async(e)=>{
     setAuthToken(data.token);
     localStorage.setItem(LS.CURRENT_USER,accountName);
     setCurrentUid(accountId,accountName); // must run before any p()/g() call below — opens THIS account's own namespace (id e.g. 3 → md_*_v4_3)
-    if(g(LS.USER)===null)p(LS.USER,accountName); // default display name only — never overwrite one the user already set
+    /* Cloud storage: the server is the source of truth. Fetch this account's data now (the login button keeps
+       spinning meanwhile) and let it replace the local cache. If the cloud can't be reached we do NOT enter the
+       app with stale local data — we undo the sign-in and say why. */
+    let cloudPlan;
+    try{cloudPlan=await cloudStartSession({uid:accountId,username:accountName,token:data.token});}
+    catch(cloudFail){
+      clearCurrentUid();setAuthToken(null);wipeLoggedInState();aiState={};
+      throw cloudFail;
+    }
+    cloudQuiet(()=>{
+      loadUserState(); // re-read the cache, which now holds the cloud copy (or the browser's own data awaiting an import decision)
+      if(g(LS.USER)===null)p(LS.USER,accountName); // default display name only — never overwrite one the user already set
+    });
     document.getElementById("loginScreen").classList.remove("show");
     const app=document.getElementById("mainApp");
     app.style.display="block";
-    setTimeout(()=>{app.classList.add("show");initMainApp();},50);
+    setTimeout(()=>{
+      app.classList.add("show");
+      cloudQuiet(()=>initMainApp()); // startup re-applies saved values (theme, overlay…): none of that is an edit to upload
+      cloudAfterLogin(cloudPlan);    // import offer / push of leftover unsaved changes
+    },50);
   }catch(err){
     document.getElementById("loginPass").value="";
     if(err.status===429){
@@ -503,6 +519,7 @@ document.getElementById("registerForm").addEventListener("submit",async(e)=>{
    it is only the safety net initMainApp() uses when it starts without a user id. ── */
 function lockScreen(){
   stopAccountStatusPolling(); // no need to poll while logged out
+  cloudEndSession({flush:true}); // send unsaved changes, then wipe this account's cache (background)
   clearCurrentUid(); // requirement 5: end this account's storage session cleanly
   resetUserSession(); // …then wipe this account's AI key/chat/wallpaper from memory + DOM (storage untouched)
   document.getElementById("mainApp").classList.remove("show");
@@ -536,7 +553,8 @@ function lockScreen(){
    • storage session ended (CURRENT_UID = null → no per-user read/write possible)
    • in-memory account data, AI key/chat, wallpaper layers, open panels wiped
    • app hidden, login screen shown; background status polling stopped
-   The account's saved apps/notes/settings stay in localStorage, so logging in again restores them.
+   The account's data lives in the cloud (see cloud.js), so logging in again restores it; this device's cache of it is wiped
+   (anything that could not be saved yet is kept and pushed at the next login).
    (The backend uses stateless JWTs, so the token is discarded here; it can't be revoked server-side.)
 ═══════════════════════════════════════════════════ */
 function wipeLoggedInState(){
@@ -550,6 +568,7 @@ function wipeLoggedInState(){
 
 function signOut(){
   stopAccountStatusPolling();
+  cloudEndSession({flush:true});              // 0. send any unsaved changes (with this session's own token), then wipe this account's cache — in the background
   setAuthToken(null);                         // 1. the JWT is gone from localStorage
   localStorage.removeItem(LS.CURRENT_USER);   //    …and so is the remembered "current user"
   clearCurrentUid();                          // 2. end the storage session (data stays saved, but is unreachable now)
@@ -576,6 +595,7 @@ window.addEventListener("storage",e=>{
 ═══════════════════════════════════════════════════ */
 function showBlockedScreen(){
   stopAccountStatusPolling();
+  cloudEndSession({flush:false}); // a blocked account can't save — keep any unsaved areas for later, wipe the rest
   setAuthToken(null); // requirement 5: clear the token so the user can't continue
   clearCurrentUid(); // and end their storage session too
   resetUserSession(); // same wipe as lockScreen

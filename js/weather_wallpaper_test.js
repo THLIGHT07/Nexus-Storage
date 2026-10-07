@@ -1,6 +1,6 @@
 const {JSDOM}=require("jsdom"),fs=require("fs"),path=require("path");
 const root=process.argv[2], label=process.argv[3];
-const files=["js/utils.js","js/ai/ai-core.js","js/apps.js","js/settings.js","js/notes.js","js/wallpapers.js","js/boot.js","js/main.js"];
+const files=["js/utils.js","js/cloud.js","js/ai/ai-core.js","js/apps.js","js/settings.js","js/notes.js","js/wallpapers.js","js/boot.js","js/main.js"];
 // the real index.html isn't in the zip → build a stub DOM containing every id the scripts ask for
 const ids=new Set();
 for(const f of files){for(const m of fs.readFileSync(path.join(root,f),"utf8").matchAll(/getElementById\(["']([^"']+)["']\)/g))ids.add(m[1]);}

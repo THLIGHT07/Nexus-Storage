@@ -562,6 +562,7 @@ async function deleteMyAccount(password){
   catch(e){throw new Error(`Can't reach the Nexus server at ${API_BASE}.`);}
   let data=null;try{data=await res.json();}catch(e){/* non-JSON body */}
   if(!res.ok)throw Object.assign(new Error((data&&data.error)||`Could not delete the account (HTTP ${res.status}).`),{status:res.status});
+  try{await cloudEndSession({discard:true});}catch(e){console.warn("[delete account] cloud session cleanup failed",e);} // the server already removed the cloud data with the account
   try{await clearAllUserData();}catch(e){console.warn("[delete account] local cleanup failed",e);} // this account's data on this device
   signOut();                                                                                        // token cleared → login screen
 }
@@ -744,8 +745,14 @@ function buildSettingsLayout(){
   /* ── DANGER ZONE ── */
   const resetBtn=move("resetDataBtn")||sxEnsure("resetDataBtn","button",{type:"button"});
   resetBtn.classList.add("sx-btn","sx-btn-danger");if(!resetBtn.textContent.trim())resetBtn.textContent="Reset all data";
-  const resetBox=sxConfirmBox({message:"This erases your apps, notes, settings, AI config and wallpapers on this device. Your login stays.",confirmLabel:"Erase everything",needText:"RESET",
-    onConfirm:()=>{clearAllUserData().finally(()=>location.reload());}});
+  const resetBox=sxConfirmBox({message:"This erases your apps, notes, settings, AI config and wallpapers from your cloud account (on every device) and from this device. Your login stays.",confirmLabel:"Erase everything",needText:"RESET",
+    onConfirm:()=>{
+      // the cloud copy is erased first — otherwise the next login would simply bring it back
+      cloudResetAll()
+        .then(()=>cloudQuiet(()=>clearAllUserData())) // wiping the local cache is not an edit to upload
+        .then(()=>location.reload())
+        .catch(err=>toast(err&&err.message?err.message:"Couldn't erase your cloud data — nothing was changed","ti-alert-circle"));
+    }});
   resetBox.querySelector(".sx-confirm-input").id="sxResetConfirm";
   resetBtn.onclick=()=>resetBox.open();
   const delPass=sxEl("input",{type:"password",id:"sxDelPass",autocomplete:"current-password",placeholder:"Your password"});

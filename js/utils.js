@@ -13,7 +13,7 @@ const NEXUS_BUILD="2026-10-02-xss1";
 (window.__nexusParts=window.__nexusParts||{})["utils.js"]=NEXUS_BUILD;
 console.info("[nexus] build",NEXUS_BUILD);
 function checkNexusBuild(){
-  const expected=["index.html","utils.js","boot.js","settings.js","wallpapers.js","ai-core.js","main.js"];
+  const expected=["index.html","utils.js","cloud.js","boot.js","settings.js","wallpapers.js","ai-core.js","main.js"];
   const parts=window.__nexusParts||{};
   const bad=expected.filter(f=>parts[f]!==NEXUS_BUILD);
   if(!bad.length)return true;
@@ -55,7 +55,7 @@ const WEATHER_ICONS={"Clear":"☀️","Clouds":"☁️","Rain":"🌧️","Drizzl
    login/register calls that use these.
 ═══════════════════════════════════════════════════ */
 // Deploy: change API_BASE to your live backend URL (e.g. https://your-api.railway.app)
-const API_BASE="https://nexus-backend-production-8428.up.railway.app";  // <- the ONE line to change for production (no trailing slash)
+const API_BASE="http://localhost:5000";  // <- the ONE line to change for production (no trailing slash)
 const API_AUTH=(b=>{const a=`${b}/api/auth`;return{LOGIN:`${a}/login`,REGISTER:`${a}/register`,ME:`${a}/me`,USERNAME:`${a}/me/username`,
   FORGOT:`${a}/forgot-password`,VERIFY_OTP:`${a}/verify-otp`,RESET:`${a}/reset-password`,
   CHANGE_SEND:`${a}/change-password/send-otp`,CHANGE:`${a}/change-password`,LINK_EMAIL:`${a}/link-email`,VERIFY_EMAIL:`${a}/verify-email`};})(API_BASE.replace(/\/+$/,""));
@@ -114,13 +114,27 @@ function nsKey(baseKey){return CURRENT_UID!=null?`${baseKey}_${CURRENT_UID}`:bas
 /** Namespaced localStorage read. Returns null when nobody is logged in. */
 function g(key){return CURRENT_UID!=null?localStorage.getItem(nsKey(key)):null;}
 /** Namespaced localStorage remove. No-op when nobody is logged in. */
-function rm(key){if(CURRENT_UID!=null)localStorage.removeItem(nsKey(key));}
+function rm(key){
+  if(CURRENT_UID==null)return;
+  const had=localStorage.getItem(nsKey(key))!==null;
+  localStorage.removeItem(nsKey(key));
+  if(had)cloudSaveHook(key);
+}
+/** Tells the cloud layer (js/cloud.js) that a stored value really changed, so it can be saved to the server.
+ * Never throws — a problem there must not look like a failed local save. */
+function cloudSaveHook(key){
+  try{if(typeof cloudNotify==="function")cloudNotify(key);}
+  catch(err){console.warn("[cloud] could not queue a save",err);}
+}
 /** Namespaced localStorage write. Returns true on success, false if blocked
  * (no user) or if the browser refused (e.g. quota) — it never throws. */
 function p(key,val){
   if(CURRENT_UID==null){console.warn(`[storage] blocked write to "${key}" — no user is logged in`);return false;}
   try{
-    localStorage.setItem(nsKey(key),typeof val==="object"?JSON.stringify(val):String(val));
+    const next=typeof val==="object"?JSON.stringify(val):String(val);
+    const prev=localStorage.getItem(nsKey(key));
+    localStorage.setItem(nsKey(key),next);
+    if(prev!==next)cloudSaveHook(key); // unchanged writes (e.g. re-applying the saved theme at startup) are not re-uploaded
     return true;
   }catch(err){
     console.error(`[storage] could not save "${key}"`,err);

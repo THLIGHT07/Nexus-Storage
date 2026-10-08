@@ -107,6 +107,13 @@
 .sx-btn:hover:not(:disabled){background:rgba(124,111,255,.18);border-color:var(--accent);}
 .sx-btn:disabled{opacity:.45;cursor:not-allowed;}
 .sx-btn-wide{width:100%;}
+/* Privacy & Policy pane: <a> styled exactly like the other .sx-btn actions */
+a.sx-btn{text-decoration:none;}
+.sx-legal-actions{flex-direction:column;}
+.sx-legal-link{justify-content:flex-start;padding:11px 14px;}
+.sx-legal-link>span{flex:1;text-align:left;}
+.sx-legal-link .sx-legal-ext{font-size:13px;opacity:.5;transition:opacity .15s,transform .15s;}
+.sx-legal-link:hover .sx-legal-ext{opacity:1;transform:translate(1px,-1px);}
 .sx-btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
 .sx-btn-primary:hover:not(:disabled){background:var(--accent);filter:brightness(1.12);}
 .sx-btn-primary.connected{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#6ee7b7;}

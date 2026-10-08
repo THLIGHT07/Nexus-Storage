@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Privacy Policy — NEXUS STORAGE</title>
+<meta name="description" content="How NEXUS STORAGE handles your account, your dashboard data, email codes and your AI settings."/>
+<meta name="theme-color" content="#0a0a0f"/>
+<script>document.documentElement.className="js";</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<link rel="stylesheet" href="css/legal.css?v=2026-10-08"/>
+<noscript><style>.reveal,.fade-in{opacity:1 !important;transform:none !important;}.lg-title .w>span{opacity:1;transform:none;animation:none;}</style></noscript>
+</head>
+<body>
+
+<div class="lg-bg" aria-hidden="true"><div class="lg-grid"></div><div class="lg-orb o1"></div><div class="lg-orb o2"></div><div class="lg-orb o3"></div></div>
+
+<!-- ═════ TOP BAR ═════ -->
+<header class="lg-bar">
+  <a class="lg-brand" href="index.html" aria-label="NEXUS STORAGE home">
+    <span class="lg-logo"><i class="ti ti-shield-lock"></i></span>
+    <span class="lg-brand-name">NEXUS STORAGE</span>
+  </a>
+  <nav class="lg-nav" aria-label="Legal pages">
+    <a href="privacy.html" class="on" aria-current="page">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </nav>
+  <a class="lg-back" href="index.html"><i class="ti ti-arrow-left"></i><span>Back to app</span></a>
+  <div class="lg-progress" aria-hidden="true"></div>
+</header>
+
+<main>
+<!-- ═════ HERO ═════ -->
+<section class="lg-hero">
+  <div class="lg-chip fade-in" style="--d:0"><span class="dot"></span>Legal · Privacy</div>
+  <h1 class="lg-title">Privacy Policy</h1>
+  <p class="lg-sub fade-in" style="--d:1">NEXUS STORAGE is your personal dashboard. This page explains, in plain language, what we keep, where it lives, and the choices you have. Short version: we keep only what the app needs to work, and we never sell your data.</p>
+  <div class="lg-meta fade-in" style="--d:2">
+    <span><i class="ti ti-calendar"></i>Last updated: 8 October 2026</span>
+    <span><i class="ti ti-clock"></i><b id="lgRead" style="font-weight:400">6 min read</b></span>
+  </div>
+
+  <div class="lg-glance">
+    <div class="lg-gl reveal"><i class="ti ti-lock"></i><b>Passwords are hashed</b><p>We store a one-way bcrypt hash — never your actual password.</p></div>
+    <div class="lg-gl reveal"><i class="ti ti-brain"></i><b>Your AI, your key</b><p>You bring your own API key. We don't run the AI and never see it.</p></div>
+    <div class="lg-gl reveal"><i class="ti ti-currency-dollar-off"></i><b>No selling, no ads</b><p>We don't sell your data and we don't use advertising trackers.</p></div>
+    <div class="lg-gl reveal"><i class="ti ti-trash"></i><b>You can delete it all</b><p>Delete your account any time from Settings → Danger Zone.</p></div>
+  </div>
+</section>
+
+<!-- ═════ BODY ═════ -->
+<div class="lg-wrap">
+  <aside class="lg-toc" aria-label="Table of contents">
+    <div class="lg-toc-title">On this page</div>
+    <ol id="lgToc"></ol>
+    <div class="lg-toc-link"><a href="terms.html"><i class="ti ti-file-text"></i> Read the Terms of Use →</a></div>
+  </aside>
+
+  <div class="lg-content">
+
+    <section class="lg-sec reveal" id="overview" data-toc="What Nexus is">
+      <h2>What NEXUS STORAGE is</h2>
+      <p>NEXUS STORAGE is a personal dashboard and command center that runs in your web browser. You can keep your favourite web apps and links in one place, write notes, customise themes and wallpapers, check the weather, play small games, and chat with an optional AI assistant.</p>
+      <p>This Privacy Policy covers the NEXUS STORAGE website and its backend service (together, the “Service”). “We”, “us” and “our” mean the person or team that operates it — see <a href="#contact">Contact</a>.</p>
+      <div class="lg-note"><i class="ti ti-info-circle"></i><p>Using the Service means you accept this policy. If you don't agree with it, please don't create an account.</p></div>
+    </section>
+
+    <section class="lg-sec reveal" id="collect" data-toc="What we collect">
+      <h2>Information we collect</h2>
+      <p>We try to collect as little as possible. Here is everything, and where it lives:</p>
+      <div class="lg-table" role="table" aria-label="Data we store">
+        <div class="lg-tr head" role="row"><span>Data</span><span>What it is</span><span>Stored</span></div>
+        <div class="lg-tr" role="row"><b>Account</b><span>Username, a bcrypt hash of your password, account status (active / blocked) and the date you joined.</span><span><span class="lg-tag srv">Our server</span></span></div>
+        <div class="lg-tr" role="row"><b>Email (optional)</b><span>Only if you link one. We store it only after you verify it with a code, in lower case.</span><span><span class="lg-tag srv">Our server</span></span></div>
+        <div class="lg-tr" role="row"><b>One-time codes</b><span>A keyed hash of the code we email you (never the code itself), plus its expiry time and attempt count. Codes expire in minutes.</span><span><span class="lg-tag srv">Our server</span></span></div>
+        <div class="lg-tr" role="row"><b>Profile</b><span>Display name, avatar and short bio — whatever you choose to enter in Edit Profile.</span><span><span class="lg-tag srv">Our server</span> <span class="lg-tag dev">Your browser</span></span></div>
+        <div class="lg-tr" role="row"><b>Dashboard data</b><span>Your apps and links, notes, settings (theme, wallpaper choice, clock, display options) and your “recent apps” list.</span><span><span class="lg-tag srv">Our server</span> <span class="lg-tag dev">Your browser</span></span></div>
+        <div class="lg-tr" role="row"><b>AI settings</b><span>Endpoint URL, model name, persona, tone, custom instructions and your <strong>API key</strong>.</span><span><span class="lg-tag dev">Your browser</span></span></div>
+        <div class="lg-tr" role="row"><b>Sign-in token</b><span>A login token (JWT) so you stay signed in.</span><span><span class="lg-tag dev">Your browser</span></span></div>
+      </div>
+      <p style="margin-top:12px">Your dashboard data is saved in your browser so the app is fast, and is also stored per user in our PostgreSQL database wherever account sync is enabled for your account. We keep your data separate from other users' data and tie it to your account only.</p>
+      <h3>Technical data</h3>
+      <p>Like any web service, our servers see your IP address when you connect. We use it in memory to rate-limit sign-in attempts and one-time-code requests and to stop abuse. Our hosting provider may also keep standard server logs (such as IP address, time and request path) for security and operations. We don't build profiles from them.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="use" data-toc="How we use it">
+      <h2>How we use your information</h2>
+      <ul>
+        <li>To create your account, sign you in and keep your session secure.</li>
+        <li>To show your own apps, notes, profile and settings back to you.</li>
+        <li>To send verification and password-reset codes to your email when you ask for them.</li>
+        <li>To protect the Service — rate limits, lockouts, blocking abusive accounts and fixing bugs.</li>
+        <li>To meet legal obligations when they apply.</li>
+      </ul>
+      <p>We do not use your notes, apps or profile for advertising, and we do not train AI models on them.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="security" data-toc="Passwords & sessions">
+      <h2>Passwords, login and sessions</h2>
+      <p>Your password is hashed with <strong>bcrypt</strong> before it is stored, so neither we nor anyone with database access can read it. Please choose a strong, unique password (8–72 characters).</p>
+      <p>When you sign in, the server issues a signed <strong>JSON Web Token (JWT)</strong> that is valid for 7 days. Your browser keeps it in local storage and sends it with requests so you don't have to log in on every page. Changing or resetting your password signs out sessions that were created before the change. Signing out removes the token from your browser.</p>
+      <div class="lg-note good"><i class="ti ti-shield-check"></i><p>All data is sent over HTTPS when the Service is deployed on a secure domain. We also use parameterised database queries, request-size limits and rate limits to reduce common attacks. No system is perfectly secure, so we can't guarantee absolute security.</p></div>
+    </section>
+
+    <section class="lg-sec reveal" id="email" data-toc="Email codes (Brevo)">
+      <h2>Email codes and Brevo</h2>
+      <p>If you link an email address, or use forgot-password / change-password, we send a short one-time code to that address. These emails are delivered through <strong>Brevo</strong>, a transactional email provider. Brevo receives your email address and the message we send, and handles them under its own privacy policy.</p>
+      <p>We only email you for those security purposes — no newsletters or marketing. Linking an email is optional, but without a verified email we can't help you recover a forgotten password.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="ai" data-toc="AI assistant">
+      <h2>The AI assistant</h2>
+      <p><strong>We don't run an AI model.</strong> The assistant works only if you provide your own API URL, model name and API key from an AI provider you choose.</p>
+      <ul>
+        <li>Your API key and AI settings stay in <strong>your browser</strong>. We don't receive, log or store your key on our servers.</li>
+        <li>When you chat, your messages are sent <strong>directly from your browser to the provider you configured</strong>. That provider's privacy policy and terms apply to those messages.</li>
+        <li>If you turn on web search, search requests go to public sources (such as DuckDuckGo and Wikipedia) through the CORS proxy set in Settings. The default proxy is a third-party service, so only use a proxy you trust, or turn web search off.</li>
+      </ul>
+      <div class="lg-note warn"><i class="ti ti-alert-triangle"></i><p>Because the key is saved in your browser, anyone with access to your device or browser profile may be able to use it. Don't save an API key on a shared computer, and don't paste passwords or other secrets into the chat.</p></div>
+    </section>
+
+    <section class="lg-sec reveal" id="location" data-toc="Weather & location">
+      <h2>Weather and location</h2>
+      <p>If the weather widget is on, your browser asks permission to use your location. If you allow it, your approximate coordinates are sent directly from your browser to the <strong>Open-Meteo</strong> weather service to fetch the forecast. They are not sent to our servers or saved to your account. You can switch the widget off in Settings → Appearance, or deny the browser prompt.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="storage" data-toc="Cookies & local storage">
+      <h2>Cookies and local storage</h2>
+      <p>We don't use advertising or tracking cookies. Instead, the app uses your browser's local storage (and, for custom wallpapers, browser storage such as IndexedDB) to work properly:</p>
+      <ul>
+        <li><strong>Session:</strong> your sign-in token and current user.</li>
+        <li><strong>Cache:</strong> a copy of your apps, notes, theme, wallpaper, clock and display preferences, so the dashboard loads instantly.</li>
+        <li><strong>AI config:</strong> endpoint, model, persona and API key (see above).</li>
+      </ul>
+      <p>You can clear this any time: sign out, use <em>Reset all data</em> in Settings, or clear site data in your browser. Clearing it only affects this device.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="third" data-toc="Third-party apps">
+      <h2>Third-party apps and links</h2>
+      <p>Apps you add to your dashboard open external websites in a new tab. Those sites are run by other people and have their own privacy practices. We don't control them and aren't responsible for what they collect. External services the Service itself talks to are limited to Brevo (email), Open-Meteo (weather, optional), your chosen AI provider and search proxy (optional), and standard font and icon CDNs used to display the interface.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="sharing" data-toc="Sharing your data">
+      <h2>Who we share data with</h2>
+      <p><strong>We do not sell your personal data, and we do not rent it or trade it.</strong> We only share it in these limited cases:</p>
+      <ul>
+        <li><strong>Service providers</strong> who help us run the Service — our hosting and database provider, and Brevo for email codes — and only as needed for that job.</li>
+        <li><strong>Legal reasons</strong> — if the law, a court or a valid legal request requires it, or to protect the safety and rights of users and the Service.</li>
+        <li><strong>With your consent</strong> — if you ask us to.</li>
+      </ul>
+    </section>
+
+    <section class="lg-sec reveal" id="admin" data-toc="Admin access">
+      <h2>Administrator access</h2>
+      <p>The Service has a password-protected admin panel. Through it, an administrator can see the list of accounts (such as usernames, status and join date) and can <strong>block, unblock or permanently delete</strong> an account — for example, to stop abuse or at a user's request. A blocked account cannot sign in until it is unblocked.</p>
+      <p>The admin panel is not built to browse your notes or apps. As the operators of the database, we technically could access stored data, and we only do so when it's necessary to maintain, secure or repair the Service, or to comply with the law.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="retention" data-toc="Keeping & deleting">
+      <h2>How long we keep data, and deleting it</h2>
+      <p>We keep your account data while your account exists. One-time codes are short-lived and replaced or removed once used or expired.</p>
+      <p>You can delete your account yourself in <strong>Settings → Danger Zone → Delete account</strong>. This permanently removes your account and its profile, settings, apps, notes and pending codes from our database, and clears the app's data on that device. An administrator may also delete an account that breaks the <a href="terms.html">Terms of Use</a>. Backups kept by our hosting provider may hold copies for a limited time before they are overwritten.</p>
+      <div class="lg-note"><i class="ti ti-info-circle"></i><p><em>Reset all data</em> (also in Danger Zone) only clears data on this device and keeps your login.</p></div>
+    </section>
+
+    <section class="lg-sec reveal" id="rights" data-toc="Your choices">
+      <h2>Your choices and rights</h2>
+      <ul>
+        <li><strong>Access and correct:</strong> your profile, username and settings are all visible and editable inside the app.</li>
+        <li><strong>Delete:</strong> remove your account and data at any time (see above).</li>
+        <li><strong>Optional features:</strong> email linking, the AI assistant, web search and the weather widget are all optional and can be turned off.</li>
+        <li><strong>Ask us:</strong> if you'd like a copy of your data, a correction, or deletion we can't do for you in the app, contact us and we'll help within a reasonable time.</li>
+      </ul>
+      <p>Depending on where you live, you may have additional rights under local data-protection law. Contact us and we'll do our best to respect them.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="children" data-toc="Children">
+      <h2>Children's privacy</h2>
+      <p>NEXUS STORAGE is not directed at children under 13, and we don't knowingly collect their personal information. If you believe a child has created an account, contact us and we will delete it.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="changes" data-toc="Changes">
+      <h2>Changes to this policy</h2>
+      <p>We may update this policy as the app grows — for example, when new features change how data is handled. When we do, we'll change the “Last updated” date above. If a change is significant, we'll make a reasonable effort to let you know in the app. Continuing to use the Service after an update means you accept the new version.</p>
+    </section>
+
+    <section class="lg-sec reveal" id="contact" data-toc="Contact">
+      <h2>Contact us</h2>
+      <p>Questions about this policy or your data? Reach out:</p>
+      <div class="lg-contact">
+        <div><small>Operated by</small><span class="ph">[Owner / Team Name]</span></div>
+        <div><small>Email</small><span class="ph">[contact@your-domain.com]</span></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+</main>
+
+<!-- ═════ FOOTER ═════ -->
+<footer class="lg-foot">
+  <div class="lg-foot-in">
+    <a class="lg-back" href="index.html"><i class="ti ti-arrow-left"></i><span>Back to NEXUS STORAGE</span></a>
+    <nav class="lg-foot-links" aria-label="Footer">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Use</a>
+      <a href="index.html">Open the app</a>
+    </nav>
+    <div class="lg-copy">© <span id="lgYear">2026</span> NEXUS STORAGE. All rights reserved.</div>
+  </div>
+</footer>
+
+<button class="lg-top" type="button" aria-label="Back to top"><i class="ti ti-arrow-up"></i></button>
+
+<script src="js/legal.js?v=2026-10-08"></script>
+<script>document.getElementById("lgYear").textContent=new Date().getFullYear();</script>
+</body>
+</html>

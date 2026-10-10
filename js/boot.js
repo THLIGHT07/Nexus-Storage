@@ -444,6 +444,12 @@ document.getElementById("loginForm").addEventListener("submit",async(e)=>{
       if(g(LS.USER)===null)p(LS.USER,accountName); // default display name only — never overwrite one the user already set
     });
     document.getElementById("loginScreen").classList.remove("show");
+    /* Terms of Use + Privacy Policy gate (js/legal-gate.js). Runs AFTER the cloud session has started and BEFORE the
+       dashboard is shown: nothing is visible, and cloudAfterLogin() (import offer / upload of unsaved changes) has not
+       run yet, until this account has accepted. Accepted accounts pass straight through (saved on the server). */
+    if(typeof ensureTermsAccepted==="function"){
+      if(!(await ensureTermsAccepted(data.user)))return; // declined / session ended → already signed out
+    }else console.error("[legal] js/legal-gate.js is not loaded — the Terms gate was skipped.");
     const app=document.getElementById("mainApp");
     app.style.display="block";
     setTimeout(()=>{
